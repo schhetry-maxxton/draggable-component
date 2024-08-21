@@ -1,0 +1,15 @@
+<div class="playground">
+    <div
+      class="resizable-bar"
+      cdkDrag
+      cdkDragBoundary=".playground"
+      [style.width.px]="width"
+      [style.height.px]="height"
+    >
+      <div
+        class="resizer"
+        (mousedown)="startResize($event)"
+      ></div>
+    </div>
+  </div>
+  

@@ -1,49 +1,66 @@
 import { Component, HostListener } from '@angular/core';
-import { CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-draggable-resizable-bar',
   standalone: true,
   templateUrl: './draggable-resizable-bar.component.html',
-  styleUrls: ['./draggable-resizable-bar.component.css'],
-  imports: [
-    // Import Angular CDK modules needed for drag-and-drop functionality
-    // This should include DragDropModule if needed
-    // For example:
-    // DragDropModule
-  ]
+  styleUrls: ['./draggable-resizable-bar.component.css']
 })
 export class DraggableResizableBarComponent {
   width = 100;  // Initial width
-  height = 30;  // Initial height
+  height = 30;  // Fixed height
+  positionLeft = 0;  // Position from the left of the container
 
   private resizing = false;
+  private dragging = false;
   private startX!: number;
-  private startY!: number;
   private startWidth!: number;
-  private startHeight!: number;
+  private startPositionLeft!: number;
+  private resizeDirection!: 'left' | 'right';
 
   @HostListener('window:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     if (this.resizing) {
       const dx = event.clientX - this.startX;
-      const dy = event.clientY - this.startY;
-      this.width = this.startWidth + dx;
-      this.height = this.startHeight + dy;
+      if (this.resizeDirection === 'left') {
+        const newWidth = this.startWidth - dx;
+        const newPositionLeft = this.startPositionLeft + dx;
+        if (newWidth > 0) {
+          this.width = newWidth;
+          this.positionLeft = newPositionLeft;
+        }
+      } else if (this.resizeDirection === 'right') {
+        this.width = this.startWidth + dx;
+      }
+    } else if (this.dragging) {
+      const dx = event.clientX - this.startX;
+      this.positionLeft = this.startPositionLeft + dx;
     }
   }
 
   @HostListener('window:mouseup', ['$event'])
   onMouseUp() {
     this.resizing = false;
+    this.dragging = false;
   }
 
-  startResize(event: MouseEvent) {
+  startResize(event: MouseEvent, direction: 'left' | 'right') {
     event.preventDefault();
+    event.stopPropagation(); // Prevents event from reaching the bar's mousedown handler
     this.resizing = true;
+    this.dragging = false;
+    this.resizeDirection = direction;
     this.startX = event.clientX;
-    this.startY = event.clientY;
     this.startWidth = this.width;
-    this.startHeight = this.height;
+    this.startPositionLeft = this.positionLeft;
+  }
+
+  startDrag(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation(); // Prevents event from affecting resizing
+    this.dragging = true;
+    this.resizing = false;
+    this.startX = event.clientX;
+    this.startPositionLeft = this.positionLeft;
   }
 }
